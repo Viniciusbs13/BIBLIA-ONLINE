@@ -1,0 +1,7 @@
+{
+  "name": "Jornada Bíblica Interativa",
+  "description": "Um aplicativo gamificado para ajudar pessoas com dificuldade de leitura a explorar a Bíblia através de áudio, resumos visuais, quizzes e devocionais diários.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
