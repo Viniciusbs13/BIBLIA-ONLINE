@@ -5,17 +5,19 @@ import { BiblePassage } from "../types";
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 export const getBibleContent = async (book: string, chapter: string): Promise<BiblePassage> => {
-  // Usamos gemini-3-flash-preview para maior velocidade e compatibilidade
+  // Usamos gemini-3-flash-preview para máxima eficiência
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: `Atue como um erudito bíblico e tradutor. Forneça o conteúdo para ${book} capítulo ${chapter}. 
+    contents: `Atue como um Professor da Bíblia especializado em acessibilidade. 
+               Gere o conteúdo para o livro de ${book}, capítulo ${chapter}.
                
-               REGRAS DE OURO:
-               1. "fullText" deve conter TODOS os versículos do capítulo numerados (Ex: 1 No princípio... 2 E a terra...).
-               2. "summary" deve ser um resumo simples e fácil de ler.
-               3. "devotional" deve ser uma aplicação prática para a vida.
-               4. "questions" deve conter 3 perguntas de múltipla escolha sobre o texto.
-               5. O retorno DEVE ser um JSON puro, sem markdown extra.`,
+               IMPORTANTE: 
+               - "fullText" deve ser o capítulo COMPLETO, começando cada versículo com seu número (Ex: 1 No princípio... 2 E a terra...). Não pule versículos.
+               - "summary" deve ser uma explicação simples (nível fundamental) do que acontece no capítulo.
+               - "devotional" deve ser uma mensagem de conforto ou ensinamento prático.
+               - "questions" deve conter 3 perguntas divertidas sobre o que foi lido.
+               
+               O retorno deve ser APENAS o JSON.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -50,17 +52,18 @@ export const getBibleContent = async (book: string, chapter: string): Promise<Bi
     }
   });
 
-  if (!response.text) {
-    throw new Error("Resposta vazia da API");
+  const text = response.text;
+  if (!text) {
+    throw new Error("Não foi possível carregar as escrituras.");
   }
 
-  return JSON.parse(response.text.trim());
+  return JSON.parse(text.trim());
 };
 
 export const generateAudioSpeech = async (text: string): Promise<string> => {
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash-preview-tts",
-    contents: [{ parts: [{ text: `Narração bíblica solene e clara para pessoa com dificuldade de leitura: ${text}` }] }],
+    contents: [{ parts: [{ text: `Leia com calma e voz acolhedora: ${text}` }] }],
     config: {
       responseModalities: ["AUDIO"],
       speechConfig: {

@@ -10,6 +10,7 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<string | null>(localStorage.getItem('biblia_active_user'));
   const [loginInput, setLoginInput] = useState('');
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [darkMode, setDarkMode] = useState(localStorage.getItem('theme') === 'dark');
 
   const [currentBook, setCurrentBook] = useState('Gênesis');
   const [currentChapter, setCurrentChapter] = useState('1');
@@ -21,6 +22,16 @@ const App: React.FC = () => {
   const [selectedVerse, setSelectedVerse] = useState<{number: number, text: string} | null>(null);
   const [noteInput, setNoteInput] = useState('');
   const [selectedColor, setSelectedColor] = useState<'yellow' | 'green' | 'red' | 'blue'>('yellow');
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     if (currentUser) {
@@ -36,7 +47,6 @@ const App: React.FC = () => {
         lastActivityDate: undefined
       };
       
-      // Lógica de Streak Simples
       const today = new Date().toLocaleDateString();
       if (userStats.lastActivityDate && userStats.lastActivityDate !== today) {
         const yesterday = new Date();
@@ -167,7 +177,6 @@ const App: React.FC = () => {
     return verses;
   }, [content]);
 
-  // Gerador de Calendário
   const calendarDays = useMemo(() => {
     const now = new Date();
     const year = now.getFullYear();
@@ -187,17 +196,17 @@ const App: React.FC = () => {
   if (!currentUser || !stats) {
     return (
       <div className="min-h-screen bg-indigo-900 flex items-center justify-center p-4">
-        <div className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl text-center">
+        <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl p-8 shadow-2xl text-center">
           <div className="text-5xl mb-4">🛡️</div>
-          <h1 className="serif text-3xl font-bold text-stone-900 mb-2">Bem-vindo à Jornada</h1>
-          <p className="text-stone-500 text-sm mb-8">Digite seu nome para salvar seu progresso e conquistas.</p>
+          <h1 className="serif text-3xl font-bold text-stone-900 dark:text-white mb-2">Bem-vindo à Jornada</h1>
+          <p className="text-stone-500 dark:text-slate-400 text-sm mb-8">Digite seu nome para salvar seu progresso e conquistas.</p>
           <form onSubmit={handleLogin} className="space-y-4">
             <input 
               autoFocus type="text" placeholder="Seu Nome ou Apelido" value={loginInput}
               onChange={(e) => setLoginInput(e.target.value)}
-              className="w-full bg-stone-100 border-2 border-transparent focus:border-indigo-500 rounded-2xl px-6 py-4 outline-none transition-all font-bold text-center text-lg"
+              className="w-full bg-stone-100 dark:bg-slate-800 dark:text-white border-2 border-transparent focus:border-indigo-500 rounded-2xl px-6 py-4 outline-none transition-all font-bold text-center text-lg"
             />
-            <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg">
+            <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-transform active:scale-95">
               Entrar na Jornada
             </button>
           </form>
@@ -209,26 +218,35 @@ const App: React.FC = () => {
   const progressPercentage = (stats.xp / XP_PER_LEVEL) * 100;
 
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col pb-10">
-      <header className="sticky top-0 bg-white border-b border-stone-200 z-20 shadow-sm">
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-950 text-slate-100' : 'bg-stone-50 text-stone-900'} flex flex-col pb-10`}>
+      <header className={`sticky top-0 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-stone-200'} border-b z-20 shadow-sm`}>
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center gap-2">
-              <button onClick={() => setView('stats')} className="text-xl hover:bg-stone-100 p-1 rounded-lg">📊</button>
+              <button onClick={() => setView('stats')} className="text-xl hover:bg-stone-100 dark:hover:bg-slate-800 p-1 rounded-lg">📊</button>
               <div>
-                <h1 className="text-sm font-bold text-stone-800 leading-none capitalize">{currentUser}</h1>
-                <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">{getRankTitle(stats.level)}</span>
+                <h1 className="text-sm font-bold leading-none capitalize">{currentUser}</h1>
+                <span className="text-[10px] text-indigo-500 font-bold uppercase tracking-wider">{getRankTitle(stats.level)}</span>
               </div>
             </div>
-            <div className="flex gap-2 text-[10px] font-bold">
-              <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-md flex items-center gap-1">
-                <span className="animate-bounce">🔥</span> {stats.streak} dias
-              </span>
-              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-md">⭐ {stats.points}</span>
-              <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md">Lv. {stats.level}</span>
+            
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setDarkMode(!darkMode)} 
+                className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-slate-800 text-yellow-400' : 'bg-stone-100 text-indigo-600'}`}
+              >
+                {darkMode ? '🌙' : '☀️'}
+              </button>
+              <div className="flex gap-2 text-[10px] font-bold">
+                <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-2 py-1 rounded-md flex items-center gap-1">
+                  <span className="animate-bounce">🔥</span> {stats.streak}d
+                </span>
+                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-md">Lv. {stats.level}</span>
+              </div>
+              <button onClick={handleLogout} className="text-xs opacity-50 hover:opacity-100">Sair</button>
             </div>
           </div>
-          <div className="w-full bg-stone-100 h-1.5 rounded-full overflow-hidden">
+          <div className={`w-full ${darkMode ? 'bg-slate-800' : 'bg-stone-100'} h-1.5 rounded-full overflow-hidden`}>
             <div className="bg-indigo-500 h-full transition-all duration-700" style={{ width: `${progressPercentage}%` }}></div>
           </div>
         </div>
@@ -239,21 +257,20 @@ const App: React.FC = () => {
           <div className="space-y-6 animate-in fade-in duration-300">
             <div className="flex items-center justify-between">
               <h2 className="serif text-2xl font-bold">Seu Progresso</h2>
-              <button onClick={() => setView('study')} className="text-sm text-indigo-600 font-bold">Voltar aos Estudos</button>
+              <button onClick={() => setView('study')} className="text-sm text-indigo-500 font-bold">Voltar aos Estudos</button>
             </div>
 
-            {/* Calendário de Streak */}
-            <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm">
+            <div className={`${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-stone-200'} p-6 rounded-3xl border shadow-sm`}>
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-stone-800">Calendário de {new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(new Date())}</h3>
-                <div className="flex items-center gap-2 text-xs font-bold text-orange-600">
+                <h3 className="font-bold">Calendário de Atividades</h3>
+                <div className="flex items-center gap-2 text-xs font-bold text-orange-500">
                   <span className="text-xl">🔥</span> {stats.streak} dias seguidos!
                 </div>
               </div>
               
               <div className="grid grid-cols-7 gap-2 text-center">
                 {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(d => (
-                  <div key={d} className="text-[10px] font-bold text-stone-400 mb-2">{d}</div>
+                  <div key={d} className="text-[10px] font-bold opacity-40 mb-2">{d}</div>
                 ))}
                 {calendarDays.map((d, i) => {
                   if (!d) return <div key={`empty-${i}`} />;
@@ -263,11 +280,11 @@ const App: React.FC = () => {
                   return (
                     <div 
                       key={d.date} 
-                      className={`aspect-square flex flex-col items-center justify-center rounded-xl relative border ${isToday ? 'border-indigo-400 ring-1 ring-indigo-100' : 'border-stone-100'}`}
+                      className={`aspect-square flex flex-col items-center justify-center rounded-xl relative border ${isToday ? 'border-indigo-500 ring-1 ring-indigo-500/20' : darkMode ? 'border-slate-800' : 'border-stone-100'}`}
                     >
-                      <span className={`text-[10px] font-bold ${isToday ? 'text-indigo-600' : 'text-stone-400'}`}>{d.day}</span>
+                      <span className={`text-[10px] font-bold ${isToday ? 'text-indigo-500' : 'opacity-40'}`}>{d.day}</span>
                       {isDone && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-orange-50/50 rounded-xl overflow-hidden">
+                        <div className={`absolute inset-0 flex items-center justify-center ${darkMode ? 'bg-orange-900/20' : 'bg-orange-50/50'} rounded-xl overflow-hidden`}>
                           <span className="text-lg animate-pulse">🔥</span>
                         </div>
                       )}
@@ -275,45 +292,42 @@ const App: React.FC = () => {
                   );
                 })}
               </div>
-              <p className="mt-6 text-[11px] text-stone-500 text-center leading-relaxed italic">
-                "Não se aparte da tua boca o livro desta lei; antes medita nele dia e noite..." - Josué 1:8
-              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-indigo-600 text-white p-6 rounded-3xl">
+              <div className="bg-indigo-600 text-white p-6 rounded-3xl shadow-lg">
                 <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">Capítulos Lidos</p>
                 <p className="text-3xl font-bold">{stats.completedChapters.length}</p>
               </div>
-              <div className="bg-amber-500 text-white p-6 rounded-3xl">
-                <p className="text-[10px] font-bold uppercase tracking-widest opacity-70">Anotações Feitas</p>
-                <p className="text-3xl font-bold">{stats.markers.length}</p>
+              <div className={`${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-amber-500 text-white'} border p-6 rounded-3xl shadow-lg`}>
+                <p className={`text-[10px] font-bold uppercase tracking-widest ${darkMode ? 'text-amber-500' : 'opacity-70'}`}>Anotações</p>
+                <p className={`text-3xl font-bold ${darkMode ? 'text-white' : ''}`}>{stats.markers.length}</p>
               </div>
             </div>
           </div>
         ) : (
           <>
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-stone-200 mb-6 flex flex-wrap gap-3 items-end">
+            <div className={`${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-stone-200'} p-4 rounded-2xl shadow-sm border mb-6 flex flex-wrap gap-3 items-end`}>
               <div className="flex-1 min-w-[140px]">
-                <label className="text-[10px] font-bold text-stone-400 uppercase mb-1 block">Escolha o Livro</label>
-                <select value={currentBook} onChange={(e) => setCurrentBook(e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-lg px-2 py-2 text-sm">
+                <label className="text-[10px] font-bold opacity-40 uppercase mb-1 block">Livro</label>
+                <select value={currentBook} onChange={(e) => setCurrentBook(e.target.value)} className={`w-full ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-stone-50 border-stone-200'} border rounded-lg px-2 py-2 text-sm outline-none`}>
                   {BIBLE_BOOKS.map(book => <option key={book} value={book}>{book}</option>)}
                 </select>
               </div>
               <div className="w-20">
-                <label className="text-[10px] font-bold text-stone-400 uppercase mb-1 block">Cap.</label>
-                <input type="number" min="1" value={currentChapter} onChange={(e) => setCurrentChapter(e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm" />
+                <label className="text-[10px] font-bold opacity-40 uppercase mb-1 block">Cap.</label>
+                <input type="number" min="1" value={currentChapter} onChange={(e) => setCurrentChapter(e.target.value)} className={`w-full ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-stone-50 border-stone-200'} border rounded-lg px-3 py-2 text-sm outline-none`} />
               </div>
-              <button onClick={() => loadBibleStudy()} disabled={loading} className="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-bold h-[38px]">
+              <button onClick={() => loadBibleStudy()} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-bold h-[38px] transition-all disabled:opacity-50">
                 {loading ? '...' : 'Ir'}
               </button>
             </div>
 
             {content && !loading ? (
               <div className="space-y-6">
-                <div className="flex bg-stone-200 p-1 rounded-xl gap-1">
+                <div className={`${darkMode ? 'bg-slate-900' : 'bg-stone-200'} p-1 rounded-xl flex gap-1`}>
                   {['study', 'read', 'quiz'].map((v: any) => (
-                    <button key={v} onClick={() => setView(v)} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${view === v ? 'bg-white text-indigo-600 shadow-sm' : 'text-stone-500'}`}>
+                    <button key={v} onClick={() => setView(v)} className={`flex-1 py-2 text-[10px] font-bold rounded-lg transition-all ${view === v ? (darkMode ? 'bg-slate-800 text-white' : 'bg-white text-indigo-600') : 'opacity-50'}`}>
                       {v === 'study' ? '1. ENTENDER' : v === 'read' ? '2. LER TEXTO' : '3. DESAFIO'}
                     </button>
                   ))}
@@ -322,21 +336,21 @@ const App: React.FC = () => {
                 {view === 'study' && (
                   <div className="space-y-6 animate-in fade-in duration-300">
                     <div className="text-center py-2">
-                      <h2 className="serif text-3xl font-bold text-stone-900">{content.reference}</h2>
+                      <h2 className="serif text-3xl font-bold">{content.reference}</h2>
                     </div>
                     <div className="bg-indigo-900 p-8 rounded-3xl text-white shadow-xl flex flex-col items-center relative overflow-hidden">
-                      <h3 className="text-xl font-bold mb-4 z-10">Ouça o Estudo</h3>
+                      <h3 className="text-xl font-bold mb-4 z-10">Resumo em Áudio</h3>
                       <AudioPlayer text={`Resumo de ${content.reference}: ${content.summary}. Devocional: ${content.devotional}`} />
                       <div className="absolute top-0 right-0 p-4 opacity-10 text-7xl">🔊</div>
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">
-                      <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
-                        <h4 className="font-bold text-indigo-600 mb-2 text-sm">💡 O que aprenderemos</h4>
-                        <p className="text-stone-700 text-sm leading-relaxed">{content.summary}</p>
+                      <div className={`${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-stone-200'} p-6 rounded-2xl border shadow-sm`}>
+                        <h4 className="font-bold text-indigo-500 mb-2 text-sm uppercase tracking-wide">💡 Resumo</h4>
+                        <p className="text-sm leading-relaxed opacity-80">{content.summary}</p>
                       </div>
-                      <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
-                        <h4 className="font-bold text-amber-600 mb-2 text-sm">🙏 Palavra ao Coração</h4>
-                        <p className="text-stone-700 text-sm leading-relaxed">{content.devotional}</p>
+                      <div className={`${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-stone-200'} p-6 rounded-2xl border shadow-sm`}>
+                        <h4 className="font-bold text-amber-500 mb-2 text-sm uppercase tracking-wide">🙏 Devocional</h4>
+                        <p className="text-sm leading-relaxed opacity-80">{content.devotional}</p>
                       </div>
                     </div>
                   </div>
@@ -345,17 +359,30 @@ const App: React.FC = () => {
                 {view === 'read' && (
                   <div className="space-y-6 animate-in slide-in-from-right duration-300">
                     <div className="text-center py-2">
-                      <h2 className="serif text-3xl font-bold text-stone-900">{content.reference}</h2>
-                      <p className="text-stone-400 text-[10px] font-bold uppercase tracking-widest mt-1 italic">Toque em um versículo para anotar</p>
+                      <h2 className="serif text-3xl font-bold">{content.reference}</h2>
+                      <p className="opacity-40 text-[10px] font-bold uppercase tracking-widest mt-1 italic">Toque no versículo para anotar</p>
                     </div>
-                    <div className="bg-white p-8 md:p-12 rounded-3xl border border-stone-200 shadow-sm relative">
-                      <div className="serif text-xl md:text-2xl text-stone-800 leading-[2.2] space-x-1">
+                    <div className={`${darkMode ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-stone-200 text-stone-800'} p-8 md:p-12 rounded-3xl border shadow-sm relative`}>
+                      <div className="serif text-xl md:text-2xl leading-[2.2] space-x-1">
                         {formattedVerses.map((v) => {
                           const marker = stats.markers.find(m => m.book === currentBook && m.chapter === currentChapter && m.verse === v.number);
-                          const colorMap = { yellow: 'bg-yellow-100', green: 'bg-green-100', red: 'bg-red-100', blue: 'bg-blue-100' };
+                          
+                          // Ajuste de cores para modo noturno nas marcações
+                          const colorMap = darkMode ? {
+                            yellow: 'bg-yellow-900/40 text-yellow-200',
+                            green: 'bg-green-900/40 text-green-200',
+                            red: 'bg-red-900/40 text-red-200',
+                            blue: 'bg-blue-900/40 text-blue-200'
+                          } : {
+                            yellow: 'bg-yellow-100',
+                            green: 'bg-green-100',
+                            red: 'bg-red-100',
+                            blue: 'bg-blue-100'
+                          };
+
                           return (
-                            <span key={v.number} onClick={() => setSelectedVerse(v)} className={`cursor-pointer transition-colors px-0.5 rounded ${marker ? colorMap[marker.color] : 'hover:bg-stone-50'}`}>
-                              <sup className="text-stone-400 font-bold mr-1 text-[12px]">{v.number}</sup>
+                            <span key={v.number} onClick={() => setSelectedVerse(v)} className={`cursor-pointer transition-colors px-0.5 rounded ${marker ? colorMap[marker.color] : (darkMode ? 'hover:bg-slate-800' : 'hover:bg-stone-50')}`}>
+                              <sup className={`opacity-40 font-bold mr-1 text-[12px]`}>{v.number}</sup>
                               {v.text}
                             </span>
                           );
@@ -366,24 +393,25 @@ const App: React.FC = () => {
                 )}
 
                 {view === 'quiz' && (
-                  <div className="bg-stone-900 text-white p-6 rounded-3xl shadow-xl space-y-8 animate-in slide-in-from-bottom duration-300">
-                    <h3 className="text-center font-bold text-indigo-300">DESAFIO DE CONHECIMENTO</h3>
+                  <div className={`${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-stone-900 text-white'} p-6 rounded-3xl shadow-xl space-y-8 animate-in slide-in-from-bottom duration-300`}>
+                    <h3 className={`text-center font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-300'}`}>VALIDAÇÃO DO APRENDIZADO</h3>
                     {content.questions.map((q, qIndex) => {
                       const userAnswer = quizResults[qIndex];
                       return (
                         <div key={qIndex} className="space-y-3">
-                          <p className="text-sm font-medium">{qIndex + 1}. {q.question}</p>
+                          <p className="text-sm font-medium opacity-90">{qIndex + 1}. {q.question}</p>
                           <div className="grid gap-2">
                             {q.options.map((opt, oIndex) => {
                               const isCorrect = oIndex === q.correctAnswer;
                               const isSelected = userAnswer === oIndex;
-                              let btnClass = "text-left p-4 text-sm rounded-xl transition-all border ";
+                              let btnClass = `text-left p-4 text-sm rounded-xl transition-all border `;
+                              
                               if (userAnswer !== undefined) {
                                 if (isCorrect) btnClass += "bg-green-600 border-green-500 text-white";
                                 else if (isSelected) btnClass += "bg-red-600 border-red-500 text-white scale-95";
-                                else btnClass += "bg-stone-800 border-stone-700 opacity-40";
+                                else btnClass += `${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-stone-800 border-stone-700'} opacity-30`;
                               } else {
-                                btnClass += "bg-stone-800 border-stone-700 hover:bg-stone-700";
+                                btnClass += `${darkMode ? 'bg-slate-800 border-slate-700 hover:border-indigo-500 text-slate-300' : 'bg-stone-800 border-stone-700 hover:bg-stone-700 text-white'}`;
                               }
                               return (
                                 <button key={oIndex} disabled={userAnswer !== undefined} onClick={() => {
@@ -399,14 +427,14 @@ const App: React.FC = () => {
                     })}
                     {Object.keys(quizResults).length === content.questions.length && (
                       <div className="pt-4 flex flex-col items-center">
-                        <div className="text-4xl mb-2 animate-bounce">🔥</div>
-                        <p className="text-xl font-bold text-green-400 mb-2">Capítulo Concluído!</p>
+                        <div className="text-4xl mb-2 animate-bounce">✨</div>
+                        <p className="text-xl font-bold text-green-400 mb-2">Lição Concluída!</p>
                         <button onClick={() => { 
                           markChapterAsDone(); 
                           const next = parseInt(currentChapter) + 1; 
                           setCurrentChapter(next.toString()); 
                           loadBibleStudy(currentBook, next.toString()); 
-                        }} className="bg-white text-indigo-900 px-12 py-3 rounded-full font-bold shadow-xl">Continuar Jornada ➔</button>
+                        }} className="bg-indigo-600 hover:bg-indigo-700 text-white px-12 py-3 rounded-full font-bold shadow-xl transition-all active:scale-95">Avançar Capítulo ➔</button>
                       </div>
                     )}
                   </div>
@@ -416,12 +444,12 @@ const App: React.FC = () => {
               <div className="flex flex-col items-center justify-center py-32">
                 {!content && !loading ? (
                   <button onClick={() => loadBibleStudy()} className="bg-indigo-600 text-white px-10 py-5 rounded-3xl font-bold text-xl shadow-xl animate-bounce">
-                    Começar Capítulo 📖
+                    Ler Capítulo 📖
                   </button>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <div className="animate-spin rounded-full h-10 w-10 border-2 border-stone-200 border-t-indigo-600 mb-4"></div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-stone-400">Consultando as Escrituras...</p>
+                    <div className="animate-spin rounded-full h-10 w-10 border-2 border-indigo-500 border-t-transparent mb-4"></div>
+                    <p className="text-xs font-bold uppercase tracking-widest opacity-40">Abrindo as Escrituras...</p>
                   </div>
                 )}
               </div>
@@ -429,30 +457,29 @@ const App: React.FC = () => {
           </>
         )}
 
-        {/* Modal de Etiqueta/Nota */}
         {selectedVerse && (
-          <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in zoom-in duration-200">
-              <h3 className="font-bold text-indigo-600 mb-1">Versículo {selectedVerse.number}</h3>
-              <p className="text-xs text-stone-400 mb-4 italic">"{selectedVerse.text.substring(0, 80)}..."</p>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className={`${darkMode ? 'bg-slate-900' : 'bg-white'} w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in zoom-in duration-200 border ${darkMode ? 'border-slate-800' : 'border-stone-100'}`}>
+              <h3 className="font-bold text-indigo-500 mb-1 uppercase text-xs tracking-wider">Versículo {selectedVerse.number}</h3>
+              <p className="text-sm opacity-50 mb-6 italic">"{selectedVerse.text.substring(0, 100)}..."</p>
               
               <div className="flex gap-3 mb-6">
                 {(['yellow', 'green', 'red', 'blue'] as const).map(color => (
                   <button 
                     key={color} onClick={() => setSelectedColor(color)}
-                    className={`w-10 h-10 rounded-full border-2 transition-all ${selectedColor === color ? 'border-stone-900 scale-110' : 'border-transparent opacity-60'}`}
-                    style={{ backgroundColor: color === 'yellow' ? '#fef08a' : color === 'green' ? '#bbf7d0' : color === 'red' ? '#fecaca' : '#bfdbfe' }}
+                    className={`w-10 h-10 rounded-full border-2 transition-all ${selectedColor === color ? 'border-indigo-500 scale-110 shadow-lg' : 'border-transparent opacity-60'}`}
+                    style={{ backgroundColor: color === 'yellow' ? '#fde047' : color === 'green' ? '#4ade80' : color === 'red' ? '#f87171' : '#60a5fa' }}
                   />
                 ))}
               </div>
               <textarea 
                 value={noteInput} onChange={(e) => setNoteInput(e.target.value)}
-                placeholder="O que Deus falou com você?"
-                className="w-full bg-stone-50 border border-stone-200 rounded-xl p-4 text-sm mb-6 h-32 outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="O que Deus revelou a você neste texto?"
+                className={`w-full ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-stone-50 border-stone-200'} border rounded-xl p-4 text-sm mb-6 h-32 outline-none focus:ring-2 focus:ring-indigo-500 resize-none`}
               />
               <div className="flex gap-2">
-                <button onClick={() => setSelectedVerse(null)} className="flex-1 py-3 text-sm font-bold text-stone-400">Cancelar</button>
-                <button onClick={saveMarker} className="flex-[2] py-3 text-sm font-bold bg-indigo-600 text-white rounded-xl">Salvar Marcação</button>
+                <button onClick={() => setSelectedVerse(null)} className="flex-1 py-3 text-sm font-bold opacity-50">Cancelar</button>
+                <button onClick={saveMarker} className="flex-[2] py-3 text-sm font-bold bg-indigo-600 text-white rounded-xl shadow-lg">Salvar Anotação</button>
               </div>
             </div>
           </div>
